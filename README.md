@@ -69,4 +69,6 @@ bitsandbytes 라이브러리 설치
 !conda list | grep cudatoolkit     # cuda 버전 확인
 !pip install bitsandbytes-cuda113  # 해당 버전에 맞는 bitsandbytes 설치 (버전이 11.3 이면, cuda113 으로 설치)
 ```
-
+### 4. Mixed-precision training(혼합 정밀도 훈련)
+- 훈련은 gpu 모델을 이용하는 데신, **gpu 모델 크기를 반으로 줄여 사용**하고, 대신 **optimizer는 cpu 모델을 이용하여 gd를 업데이트** 하는 방식
+- gpu 모델과 cpu 모델 2개 필요. **훈련시간이 gpu일때 보다 엄청 증가함(5~10배)**
