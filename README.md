@@ -1,7 +1,7 @@
 # GPUTech  <img src="https://img.shields.io/badge/Pytorch-EE4C2C?style=flat-square&logo=Pytorch&logoColor=white"/><img src="https://img.shields.io/badge/Python-3766AB?style=flat-square&logo=Python&logoColor=white"/></a>
 
 ## GPU 메모리보다 큰 모델 파인 튜닝하기
-- 모델 훈련 중 "CUDA 메모리 오류.." 문제를 해결하기 위한 메모리를 효율적으로 설정하여 훈련할수 있는 방법에 대해 설명함.
+- 모델 훈련 중 "CUDA 메모리 오류.." 문제를 해결하기 위한 GPU 메모리를 효율적으로 설정하여 훈련할수 있는 방법에 대해 설명함.
 - **GPU 메모리**에 초점을 맞추었음
 - 보다 자세한 내용은 [이곳 사이트](https://medium.com/@bestasoff/how-to-fine-tune-very-large-model-if-it-doesnt-fit-on-your-gpu-3561e50859af) 혹은 [파일](https://github.com/kobongsoo/GPUTech/blob/master/reference/GPU%EC%97%90%20%EB%A7%9E%EC%A7%80%20%EC%95%8A%EB%8A%94%20%EB%A7%A4%EC%9A%B0%20%ED%81%B0%20%EB%AA%A8%EB%8D%B8%EC%9D%84%20%EB%AF%B8%EC%84%B8%20%EC%A1%B0%EC%A0%95%ED%95%98%EB%8A%94%20%EB%B0%A9%EB%B2%95.pdf)참조 하기 바람
 - 아래 표는 실제, [BERT 테스트 소스](https://github.com/kobongsoo/GPUTech/blob/master/bert-fpt-gpu-test.ipynb)를 직접 구현해서 테스트 해본 결과임
