@@ -16,7 +16,7 @@
 |1+2+3|8G|185|89%|
 
 - **2.micro_batch/Gradient accumulation 는 batch_size=8 로 하고, accumulation_steps = 4로 한 경우임**
-- **3.8bit-adam optimizer 과  4.Mixed-precision training 같이 적용 하면 안됨** 
+- **3.8bit-adam optimizer와  4.Mixed-precision training 같이 적용 하면 안됨** 
    - 같이 적용시 에러 발생함-'Error an illegal memory access was encountered at line 276 in file /private/home/timdettmers/git/bitsandbytes/csrc/ops.cu' (**원인 모름**)		
 				
 				
