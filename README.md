@@ -6,15 +6,15 @@
 - 보다 자세한 내용은 [이곳 사이트](https://medium.com/@bestasoff/how-to-fine-tune-very-large-model-if-it-doesnt-fit-on-your-gpu-3561e50859af) 혹은 [파일](https://github.com/kobongsoo/GPUTech/blob/master/reference/GPU%EC%97%90%20%EB%A7%9E%EC%A7%80%20%EC%95%8A%EB%8A%94%20%EB%A7%A4%EC%9A%B0%20%ED%81%B0%20%EB%AA%A8%EB%8D%B8%EC%9D%84%20%EB%AF%B8%EC%84%B8%20%EC%A1%B0%EC%A0%95%ED%95%98%EB%8A%94%20%EB%B0%A9%EB%B2%95.pdf)참조 하기 바람
 - 아래 표는 실제, [BERT 테스트 소스](https://github.com/kobongsoo/GPUTech/blob/master/bert-fpt-gpu-test.ipynb)를 직접 구현해서 테스트 해본 결과임
 
-[ hyperParameter : batch_size=32, lr=3e-5, epochs=3, BertMLMModel, 24G GPU 환경 ]
+##### [ hyper-Parameter : batch_size=32, lr=3e-5, epochs=3, 모델: BertMLMModel, 서버: 24G GPU 서버, traindata: 10,000 문장/evaldata: 110문장]
 |방식|GPU사용량(기준:22G)|훈련속도/1epoch(기준: 110초)|평가 정확도(기준:89%)|
 |:------|:---:|:---:|:---:|
 |1.gradient_checkpoint|21.3G|110|89%|
 |**2.micro_batch/Gradient accumulation**|9.5G|180|89%|
 |3.8bit-adam optimizer|21.8G|100|89%|
-|4.Mixed-precision training|12G|430|90%|
+|4.Mixed-precision training|12G|420|90%|
 |1+2+3|8G|185|89%|
-|1+2+4|4.6G|420|89%|
+|1+2+4|4.6G|400|90%|
 
 - **2.micro_batch/Gradient accumulation 는 batch_size=8 로 하고, accumulation_steps = 4로 한 경우임**
 - **3.8bit-adam optimizer와  4.Mixed-precision training 같이 적용 하면 안됨** 
@@ -100,7 +100,7 @@ adam = bnb.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.995), optim_bi
 - 훈련은 gpu 모델을 이용하는 데신, **GPU 모델 크기를 반으로 줄여 사용**(half())하고, 대신 **optimizer는 CPU 모델을 이용** 하는 방식
 -  **optimizer는 훈련된 GPU 모델의 grad를 CPU모델로 복사 후, 감소 시킴**
 -  **CPU 모델 state_dict을 GPU 모델로 state_dict로 로딩**하는 과정 필요
-- CPU 모델과 GPU 모델 2개 필요. **훈련시간이 GPU 일때 보다 엄청 증가함(8~10배)**
+- CPU 모델과 GPU 모델 2개 필요. **훈련시간이 GPU 일때 보다 5배 정도 증가함**
 
 ```
 # GPU 모델 생성
