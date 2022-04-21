@@ -16,6 +16,8 @@ model.gradient_checkpointing_enable()
 ```
 ### 2. micro_batch/Gradient accumulation(마이크로 배치&기울기 축적)
 - 배치사이즈는 8로 하고, 대신에 accumulation_steps = 4로 해서, 4번 기울기 축적을 누적해서 32배치사이즈와 동일한 효과를 주는 방식
+- 1훈련 과정에서 손실 계산은 **loss = loss/accumulation_steps** 이 됨
+- accumulation_steps 누적해서 한꺼번에 optimizer step 시킴
 - **훈련시간이 1.4배** 더 증가함
 ```
 batch_size = 8
@@ -34,7 +36,10 @@ model.train()
         
         # 출력값 loss를 outputs에서 얻어옴
         loss = outputs.loss
-        loss = loss / accumulation_steps  # 손실값을 accumulation_steps 나눔
+        
+        # ** 손실값을 accumulation_steps 나눔
+        loss = loss / accumulation_steps  
+        
         loss.backward()   # backward 구함
         
         # optimizer는 accumulation_steps 주기로, 업데이트 시킴
@@ -58,17 +63,53 @@ optimizer = bnb.optim.Adam8bit(model.parameters(), lr=learning_rate, betas=(0.9,
 import bitsandbytes as bnb
 adam = bnb.optim.Adam(model.parameters(), lr=0.001, betas=(0.9, 0.995), optim_bits=8) 
 ```
-
+- bitsandbytes 라이브러리 설치
+  - 8-bit optimizer 사용을 위해 cuda 버전을 확인하고, 해당 버전에 맞는 bitsandbytes 라이브러리 설치함
+  - Bitsandbytes is a lightweight wrapper around CUDA custom functions, in particular 8-bit optimizers and quantization functions.
+  - 참조 : [bitsandbytes](https://github.com/facebookresearch/bitsandbytes)
 ```
-bitsandbytes 라이브러리 설치
-
-- 8-bit optimizer 사용을 위해 cuda 버전을 확인하고, 해당 버전에 맞는 bitsandbytes 라이브러리 설치함
-- Bitsandbytes is a lightweight wrapper around CUDA custom functions, in particular 8-bit optimizers and quantization functions.
-- 참조 : https://github.com/facebookresearch/bitsandbytes
-
 !conda list | grep cudatoolkit     # cuda 버전 확인
 !pip install bitsandbytes-cuda113  # 해당 버전에 맞는 bitsandbytes 설치 (버전이 11.3 이면, cuda113 으로 설치)
 ```
 ### 4. Mixed-precision training(혼합 정밀도 훈련)
-- 훈련은 gpu 모델을 이용하는 데신, **gpu 모델 크기를 반으로 줄여 사용**하고, 대신 **optimizer는 cpu 모델을 이용하여 gd를 업데이트** 하는 방식
-- gpu 모델과 cpu 모델 2개 필요. **훈련시간이 gpu일때 보다 엄청 증가함(5~10배)**
+- 훈련은 gpu 모델을 이용하는 데신, **GPU 모델 크기를 반으로 줄여 사용**(half())하고, 대신 **optimizer는 CPU 모델을 이용** 하는 방식
+-  **optimizer는 훈련된 GPU 모델의 grad를 CPU모델로 복사 후, 감소 시킴**
+-  **CPU 모델 state_dict을 GPU 모델로 state_dict로 로딩**하는 과정 필요
+- CPU 모델과 GPU 모델 2개 필요. **훈련시간이 GPU 일때 보다 엄청 증가함(8~10배)**
+
+```
+# GPU 모델 생성
+model = BertForMaskedLM.from_pretrained(model_path).half()  # gpu 모델은 반으로 줄임(half())
+model.to('CUAD:0')
+
+# CPU 모델 생성 
+cpu_model = BertForMaskedLM.from_pretrained(model_path)     
+model.to('cpu')
+
+# Optimizer는 CPU 모델로 지정
+optimizer = AdamW(cpu_model.parameters(), lr=3e-5,  eps=1e-8)
+
+model.train()
+
+for i in range(epochs):
+    for batch_idx, data in enumerate(tqdm(train_loader)):
+    
+       # GPU 모델 훈련
+       outputs = model(**input)
+       loss = outputs.loss
+       loss.backward()   # backward 구함
+       
+       # ** optimizer는 훈련된 GPU 모델의 grad를 CPU모델로 복사후, 감소 시킴
+       # 훈련된 gpu 모델의 grad를 cpu 모델의 grad로 복사
+       for p_gpu, p_cpu in zip(model.parameters(), cpu_model.parameters()):
+           p_cpu.grad = p_gpu.grad.cpu().to(torch.float32)
+        
+       #  optimzer 감소  
+       model.zero_grad()
+       optimizer.step()
+       scheduler.step()  
+       
+       # CPU 모델 state_dict을 GPU 모델로 로딩함
+       model.load_state_dict(cpu_model.state_dict()) 
+       cpu_model.zero_grad()
+```
