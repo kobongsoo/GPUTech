@@ -84,7 +84,7 @@ model.to('CUAD:0')
 
 # CPU 모델 생성 
 cpu_model = BertForMaskedLM.from_pretrained(model_path)     
-model.to('cpu')
+cpu_model.to('cpu')
 
 # Optimizer는 CPU 모델로 지정
 optimizer = AdamW(cpu_model.parameters(), lr=3e-5,  eps=1e-8)
