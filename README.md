@@ -14,6 +14,7 @@
 |3.8bit-adam optimizer|21.8G|100|89%|
 |4.Mixed-precision training|12G|430|90%|
 |1+2+3|8G|185|89%|
+|1+2+4|4.6G|420|89%|
 
 - **2.micro_batch/Gradient accumulation 는 batch_size=8 로 하고, accumulation_steps = 4로 한 경우임**
 - **3.8bit-adam optimizer와  4.Mixed-precision training 같이 적용 하면 안됨** 
