@@ -1,10 +1,6 @@
 # GPUTech  <img src="https://img.shields.io/badge/Pytorch-EE4C2C?style=flat-square&logo=Pytorch&logoColor=white"/><img src="https://img.shields.io/badge/Python-3766AB?style=flat-square&logo=Python&logoColor=white"/></a>
-## 1.[Colossal-AI](https://colossalai.org/)
-- AI 모델을 훈련하기 위한 다양한 병렬 처리 방법을 제공함으로써, 저사양 H/W에서 대규모 모델 훈련 및 배포 할수 있도록 하는 Open 소스
-- 기존 솔루션과 비교하여 GPU 효율을 10배이상 늘릴 수 있다고 함
- <br> 예로 GPU 1개로 180억 매개변수(GPT-2-EXTRALARGE 모델 10배 큰 모델) AI 모델 훈련 할수 있다고 함
 
-## 2. GPU 메모리보다 큰 모델 파인 튜닝하기
+## 1. GPU 메모리보다 큰 모델 파인 튜닝하기
 - 모델 훈련 중 "CUDA 메모리 오류.." 문제를 해결하기 위한 GPU 메모리를 효율적으로 설정하여 훈련할수 있는 방법에 대해 설명함.
 - **GPU 메모리**에 초점을 맞추었음
 - 보다 자세한 내용은 [이곳 사이트](https://medium.com/@bestasoff/how-to-fine-tune-very-large-model-if-it-doesnt-fit-on-your-gpu-3561e50859af) 혹은 [파일](https://github.com/kobongsoo/GPUTech/blob/master/reference/GPU%EC%97%90%20%EB%A7%9E%EC%A7%80%20%EC%95%8A%EB%8A%94%20%EB%A7%A4%EC%9A%B0%20%ED%81%B0%20%EB%AA%A8%EB%8D%B8%EC%9D%84%20%EB%AF%B8%EC%84%B8%20%EC%A1%B0%EC%A0%95%ED%95%98%EB%8A%94%20%EB%B0%A9%EB%B2%95.pdf)참조 하기 바람
@@ -144,3 +140,8 @@ for i in range(epochs):
 ```
 참고 소스 : [mixed-precision.py](https://github.com/kobongsoo/GPUTech/blob/master/reference/mixed-precision.py)
 
+***
+## 2.[Colossal-AI](https://colossalai.org/)
+- AI 모델을 훈련하기 위한 다양한 병렬 처리 방법을 제공함으로써, 저사양 H/W에서 대규모 모델 훈련 및 배포 할수 있도록 하는 Open 소스
+- 기존 솔루션과 비교하여 GPU 효율을 10배이상 늘릴 수 있다고 함
+ <br> 예로 GPU 1개로 180억 매개변수(GPT-2-EXTRALARGE 모델 10배 큰 모델) AI 모델 훈련 할수 있다고 함
