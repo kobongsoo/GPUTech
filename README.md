@@ -1,7 +1,8 @@
 # GPUTech  <img src="https://img.shields.io/badge/Pytorch-EE4C2C?style=flat-square&logo=Pytorch&logoColor=white"/><img src="https://img.shields.io/badge/Python-3766AB?style=flat-square&logo=Python&logoColor=white"/></a>
 ## 1.[Colossal-AI](https://colossalai.org/)
-- AI 모델을 다양한 병렬 처리를 제공하여, 저사양 H/W에서 대규모 모델 훈련 및 배포 할수 있도록 하는 Open 소스
-- 기존 솔루션과 비교하여 용량을 10배이상 늘릴수 있다고 함 (예 : GPU 1개로 180억 매개변수 AI 모델 훈련)
+- AI 모델을 훈련하기 위한 다양한 병렬 처리 방법을 제공함으로써, 저사양 H/W에서 대규모 모델 훈련 및 배포 할수 있도록 하는 Open 소스
+- 기존 솔루션과 비교하여 GPU 효율을 10배이상 늘릴 수 있다고 함
+ <br> 예로 GPU 1개로 180억 매개변수(GPT-2-EXTRALARGE 모델 10배 큰 모델) AI 모델 훈련 할수 있다고 함
 
 ## 2. GPU 메모리보다 큰 모델 파인 튜닝하기
 - 모델 훈련 중 "CUDA 메모리 오류.." 문제를 해결하기 위한 GPU 메모리를 효율적으로 설정하여 훈련할수 있는 방법에 대해 설명함.
