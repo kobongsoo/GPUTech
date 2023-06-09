@@ -1,6 +1,53 @@
-# GPUTech  <img src="https://img.shields.io/badge/Pytorch-EE4C2C?style=flat-square&logo=Pytorch&logoColor=white"/><img src="https://img.shields.io/badge/Python-3766AB?style=flat-square&logo=Python&logoColor=white"/></a>
+<img src="https://img.shields.io/badge/Pytorch-EE4C2C?style=flat-square&logo=Pytorch&logoColor=white"/><img src="https://img.shields.io/badge/Python-3766AB?style=flat-square&logo=Python&logoColor=white"/></a>
+## < PEFT >
+- Parameter Efficient Fine-Tuning(PEFT): 모델의 모든 파라미터를 튜닝하는 것이 아닌 일부 파라미터만을 튜닝함으로써 모델의 성능을 적은 자원으로도 높게 유지하는 방법론
+- PEFT 기법으로 LoRA, IA3, prompt tuning, prefix tuning 등이 있음.
+### LoRA
+- LoRA(Low-Rank Adaptation)의 개념을 간단하게 설명하자면, 고정된 weights를 갖는 pretrained model에 학습이 가능한 rank decomposition 행렬을 삽입한것으로
+중간중간 학습이 가능한 파라미터를 삽입했다는 점에서는 어댑터와 비슷하지만 구조적으로 조금 다르다고 할 수 있습니다.
+- 적은 양의 파라미터로 모델을 튜닝하는 방법론이기 때문에 적은수의 GPU로 빠르게 튜닝할 수 있다는 장점이 있습니다.
+- LoRA에서 나온 rank decomposition이라는 말이 처음에는 어렵게 느껴졌었는데요.
+아래 보이는 그림에서 처럼 행렬의 차원을 r 만큼 줄이는 행렬과 다시 원래 크기로 키워주는 행렬의 곱으로 나타내는 것을 의미합니다.
 
-## 1. GPU 메모리보다 큰 모델 파인 튜닝하기
+![image](https://github.com/kobongsoo/GPUTech/assets/93692701/0dfd007a-01c6-4922-b90d-c8a617015fb7)
+
+참고: https://devocean.sk.com/blog/techBoardDetail.do?ID=164779&boardType=techBlog
+
+### LoRA by Huggingface
+- [Huggingface에서 공개한 PEFT 라이브러리](https://github.com/huggingface/peft)를 이용하면 LoRA 기법을 간단하게 적용할수 있다.
+```
+from transformers import AutoModelForSeq2SeqLM
+from peft import get_peft_config, get_peft_model, LoraConfig, TaskType
+model_name_or_path = "bigscience/mt0-large"
+tokenizer_name_or_path = "bigscience/mt0-large"
+
+peft_config = LoraConfig(
+    task_type=TaskType.SEQ_2_SEQ_LM, inference_mode=False, r=8, lora_alpha=32, lora_dropout=0.1
+)
+
+model = AutoModelForSeq2SeqLM.from_pretrained(model_name_or_path)
+model = get_peft_model(model, peft_config)
+model.print_trainable_parameters()
+```
+- Huggingface 지원 TaskType과 AutoModelForxxx 함수 
+```
+class TaskType(str, enum.Enum):
+ 	SEQ_CLS = "SEQ_CLS"
+    	SEQ_2_SEQ_LM = "SEQ_2_SEQ_LM"
+    	CAUSAL_LM = "CAUSAL_LM"
+    	TOKEN_CLS = "TOKEN_CLS"
+
+from transformers import AutoModelForSeq2SeqLM
+from transformers import AutoModelForCausalLM
+from transformers import AutoModelForSequenceClassification
+from transformers import AutoModelForTokenClassification
+```
+예제 : **[GPT-LoRA (LLM 모델을 파인튜닝하는 예시)](https://github.com/kobongsoo/GPUTech/blob/master/GPT-LoRA.ipynb)**
+<br>참고 소스
+<br> https://github.com/quantumaikr/KoreanLM
+<br> https://github.com/jeremyarancio/llm-rpg/
+
+## <GPU 메모리보다 큰 모델 파인 튜닝하기>
 - 모델 훈련 중 "CUDA 메모리 오류.." 문제를 해결하기 위한 GPU 메모리를 효율적으로 설정하여 훈련할수 있는 방법에 대해 설명함.
 - **GPU 메모리**에 초점을 맞추었음
 - 보다 자세한 내용은 [이곳 사이트](https://medium.com/@bestasoff/how-to-fine-tune-very-large-model-if-it-doesnt-fit-on-your-gpu-3561e50859af) 혹은 [파일](https://github.com/kobongsoo/GPUTech/blob/master/reference/GPU%EC%97%90%20%EB%A7%9E%EC%A7%80%20%EC%95%8A%EB%8A%94%20%EB%A7%A4%EC%9A%B0%20%ED%81%B0%20%EB%AA%A8%EB%8D%B8%EC%9D%84%20%EB%AF%B8%EC%84%B8%20%EC%A1%B0%EC%A0%95%ED%95%98%EB%8A%94%20%EB%B0%A9%EB%B2%95.pdf)참조 하기 바람
@@ -141,7 +188,7 @@ for i in range(epochs):
 참고 소스 : [mixed-precision.py](https://github.com/kobongsoo/GPUTech/blob/master/reference/mixed-precision.py)
 
 ***
-## 2.[Colossal-AI](https://colossalai.org/)
+## <[Colossal-AI](https://colossalai.org/)>
 - AI 모델을 훈련하기 위한 다양한 병렬 처리 방법을 제공함으로써, 저사양 H/W에서 대규모 모델 훈련 및 배포 할수 있도록 하는 Open 소스
 - 기존 솔루션과 비교하여 GPU 효율을 10배이상 늘릴 수 있다고 함
  <br> 예로 GPU 1개로 180억 매개변수(GPT-2-EXTRALARGE 모델 10배 큰 모델) AI 모델 훈련 할수 있다고 함
