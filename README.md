@@ -13,7 +13,8 @@
 
 참고: https://devocean.sk.com/blog/techBoardDetail.do?ID=164779&boardType=techBlog
 
-- [Huggingface에서 공개한 PEFT 라이브러리](https://github.com/huggingface/peft)를 이용하면 간단하게 적용할수 있다.
+### LoRA by Huggingface
+- [Huggingface에서 공개한 PEFT 라이브러리](https://github.com/huggingface/peft)를 이용하면 LoRA 기법을 간단하게 적용할수 있다.
 ```
 from transformers import AutoModelForSeq2SeqLM
 from peft import get_peft_config, get_peft_model, LoraConfig, TaskType
@@ -27,6 +28,19 @@ peft_config = LoraConfig(
 model = AutoModelForSeq2SeqLM.from_pretrained(model_name_or_path)
 model = get_peft_model(model, peft_config)
 model.print_trainable_parameters()
+```
+- Huggingface 지원 TaskType과 AutoModelForxxx 함수 
+```
+class TaskType(str, enum.Enum):
+ 	SEQ_CLS = "SEQ_CLS"
+    	SEQ_2_SEQ_LM = "SEQ_2_SEQ_LM"
+    	CAUSAL_LM = "CAUSAL_LM"
+    	TOKEN_CLS = "TOKEN_CLS"
+
+from transformers import AutoModelForSeq2SeqLM
+from transformers import AutoModelForCausalLM
+from transformers import AutoModelForSequenceClassification
+from transformers import AutoModelForTokenClassification
 ```
 
 ## GPU 메모리보다 큰 모델 파인 튜닝하기
