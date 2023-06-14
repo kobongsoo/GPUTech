@@ -2,6 +2,9 @@
 ## < PEFT >
 - Parameter Efficient Fine-Tuning(PEFT): 모델의 모든 파라미터를 튜닝하는 것이 아닌 일부 파라미터만을 튜닝함으로써 모델의 성능을 적은 자원으로도 높게 유지하는 방법론
 - PEFT 기법으로 LoRA, IA3, prompt tuning, prefix tuning 등이 있음.
+
+참고 : [Fine-tune your own “GPT-4” on your data: create a “The Lord of the Rings” storyteller](https://medium.com/@jeremyarancio/fine-tune-an-llm-on-your-personal-data-create-a-the-lord-of-the-rings-storyteller-6826dd614fa9)
+
 ### LoRA
 - LoRA(Low-Rank Adaptation)의 개념을 간단하게 설명하자면, 고정된 weights를 갖는 pretrained model에 학습이 가능한 rank decomposition 행렬을 삽입한것으로
 중간중간 학습이 가능한 파라미터를 삽입했다는 점에서는 어댑터와 비슷하지만 구조적으로 조금 다르다고 할 수 있습니다.
@@ -42,10 +45,17 @@ from transformers import AutoModelForCausalLM
 from transformers import AutoModelForSequenceClassification
 from transformers import AutoModelForTokenClassification
 ```
-예제 : **[GPT-LoRA (LLM 모델을 파인튜닝하는 예시)](https://github.com/kobongsoo/GPUTech/blob/master/GPT-LoRA.ipynb)**
-<br>참고 소스
-<br> https://github.com/quantumaikr/KoreanLM
-<br> https://github.com/jeremyarancio/llm-rpg/
+### 예제
+|소스|내용|
+|:------|:---:|
+|[LoRA1](https://github.com/kobongsoo/GPUTech/blob/master/LLM-LoRA.ipynb)|sLLM 모델을 파인튜닝하는 예시1|
+|[LoRA2](https://github.com/kobongsoo/GPUTech/blob/master/LLM-LoRA2.ipynb)|sLLM 모델을 파인튜닝하는 예시2|
+
+### 참고 sLLM 모델과 git
+[KoreanLM 모델 git](https://github.com/quantumaikr/KoreanLM)
+<br>[KoAlpaca 모델 git](https://github.com/Beomi/KoAlpaca)
+<br>[EleutherAI/polyglot-ko-5.8b 모델](https://huggingface.co/EleutherAI/polyglot-ko-5.8b)
+<br>[opennlm-research/open_llama_7b 모델](https://huggingface.co/openlm-research/open_llama_7b)
 
 ## <GPU 메모리보다 큰 모델 파인 튜닝하기>
 - 모델 훈련 중 "CUDA 메모리 오류.." 문제를 해결하기 위한 GPU 메모리를 효율적으로 설정하여 훈련할수 있는 방법에 대해 설명함.
