@@ -50,6 +50,7 @@ from transformers import AutoModelForTokenClassification
 |:------|:---:|
 |[LoRA1](https://github.com/kobongsoo/GPUTech/blob/master/LLM-LoRA.ipynb)|sLLM 모델을 파인튜닝하는 예시1|
 |[LoRA2](https://github.com/kobongsoo/GPUTech/blob/master/LLM-LoRA2.ipynb)|sLLM 모델을 파인튜닝하는 예시2|
+|[inference](https://github.com/kobongsoo/GPUTech/blob/master/inference.ipynb)|sLLM 모델 추론 예시|
 
 ### 참고 sLLM 모델과 git
 [KoreanLM 모델 git](https://github.com/quantumaikr/KoreanLM)
