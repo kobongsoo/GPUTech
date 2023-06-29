@@ -16,12 +16,35 @@ import warnings
 from filelock import FileLock
 #from transformers.utils import logging
 from tqdm.notebook import tqdm
-import gluonnlp as nlp                  # GluonNLP는 버트를 간단하게 로딩하는 인터페이스를 제공하는 API 임
+#import gluonnlp as nlp                  # GluonNLP는 버트를 간단하게 로딩하는 인터페이스를 제공하는 API 임
 
 from transformers import BertTokenizer
 from typing import Dict, List
 
 #logger = logging.get_logger(__name__)
+
+
+
+#########################################################################################
+# 폴더(서브폴더포함)에 있는 파일들의 풀경로를 얻어오는 함수
+# 출처 : https://thispointer.com/python-how-to-get-list-of-files-in-directory-and-sub-directories/
+#########################################################################################
+def getListOfFiles(dirName):
+    # create a list of file and sub directories 
+    # names in the given directory 
+    listOfFile = os.listdir(dirName)
+    allFiles = list()
+    # Iterate over all the entries
+    for entry in listOfFile:
+        # Create full path
+        fullPath = os.path.join(dirName, entry)
+        # If entry is a directory then get the list of files in this directory 
+        if os.path.isdir(fullPath):
+            allFiles = allFiles + getListOfFiles(fullPath)
+        else:
+            allFiles.append(fullPath)
+                
+    return allFiles
 
 #########################################################################################
 # wordpiece vocab에 special 토큰 추가
@@ -70,7 +93,7 @@ def AddWPVocabSpecialToken(input_wpfpath:str, output_folder:str):
 #              k:[MASK], idx:4
 #              k:[PAD], idx:1
 #########################################################################################
-
+'''
 def SPVocabToWPVocab(input_fpath:str, output_fpath:str, first_special_token:list):
     
     # 입력 파일경로가 없으면 에러
@@ -108,7 +131,7 @@ def SPVocabToWPVocab(input_fpath:str, output_fpath:str, first_special_token:list
                 f.writelines(k + "\n")
         
     print("spvocap:'{}' -> wpvocab: '{}' change success!!".format(input_fpath, output_fpath))
-
+'''
 #########################################################################################    
 # mlogging 설정
 #########################################################################################
@@ -126,6 +149,11 @@ def mlogging(
         
     print('logfilepath:{}'.format(logfilepath))
 
+    # 폴더가 없으면 생성
+    dir_path = os.path.dirname(logfilepath)  
+    if not os.path.exists(dir_path):
+        os.makedirs(dir_path)
+    
     # 로그 생성
     logger = logging.getLogger(loggername)
 

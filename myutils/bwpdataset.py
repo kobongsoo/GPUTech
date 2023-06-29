@@ -6,15 +6,139 @@ import logging
 import pickle
 import copy
 import json
+import yaml # pip install PyYAML
 
 from filelock import FileLock
 from dataclasses import dataclass
-from typing import List, Optional
 from torch.utils.data.dataset import Dataset
 from transformers import PreTrainedTokenizer
 from .utils import mlogging
 from tqdm.notebook import tqdm
 from typing import Dict, List, Optional
+
+#---------------------------------------------------------------------------
+# .yaml 파일 호출
+# -in : file_path = .yaml 파일이 있는 경로
+#---------------------------------------------------------------------------
+def get_options(file_path):
+    with open(file_path, 'r', encoding='utf-8') as file:
+        options = yaml.load(file, Loader=yaml.FullLoader)
+    
+    return options
+#---------------------------------------------------------------------------
+
+#==================================================================================================
+# MRR(Mean Reciprocal Rank) 함수
+# => IN : ground_truths - 정답 contextid 1차원 리스트(예: [10001,10002, 10003, 10004,...])
+#         predictions - 예측값 contextid 2차원 리스트(예: [[10003,10004,...],[10010, 10007,...],[],[],...]
+# => OUT : 각 쿼리에 대한 ranks 값 리스트(0~1범위), 전체 평균 쿼리 ranks 값(MRR) 리턴함
+#==================================================================================================
+def mean_reciprocal_rank(ground_truths, predictions):
+    reciprocal_ranks = []
+    
+    for gt, prediction in zip(ground_truths, predictions):
+        rank = 1
+        bsearch=False
+        for p in prediction:
+            #print(f'pred:{p}-gt:{gt}')
+            #if p in gt:
+            if p == gt:
+                reciprocal_ranks.append(1/rank)
+                bsearch=True
+                #print(f'gt:{gt}=>{1/rank}')
+                break
+            rank += 1
+            
+        if bsearch==False:
+            reciprocal_ranks.append(0)
+            #print(f'gt:{gt}=>0')
+       
+    # 각 쿼리에 대한 ranks 값(0~1범위), 전체 평균 쿼리 ranks 값(MRR) 리턴함
+    return reciprocal_ranks, sum(reciprocal_ranks) / len(reciprocal_ranks)
+#==================================================================================================
+
+#==================================================================================================================
+# AI_HUB-뉴스기사 기계독해 데이터-2.Validataion-라벨링데이터-VL_text_entailment.JSON 파일 로딩 하여, 각 리스트들을 출력하는 함수
+# => IN : VL_text_entailment.JSON 경로
+# => OUT : contexts(문장 리스트), questions(질의리스트), answers(답변리스트), 
+#          contextid(문장 id 리스트 : 10001 부터시작), pcontextid(질의와 연관된 문장 id 리스트: 10001부터 시작)
+#==================================================================================================================
+def read_aihub_qua_json(filepath):
+    
+    context_list = []
+    question_list = []
+    qcontextid_list = []
+    answer_list = []
+    contextid_list = []
+    
+    # KorQuAD_v1.0_train.json 파일을 불러옴
+    json_data = json.load(open(filepath, "r", encoding="utf-8"))["data"]
+
+    # KorQuAD_v1.0 포멧에 맞게 파싱하여, context, question, answer 목록들을 구함.
+    context_id = 10000
+    for entry in json_data:
+        for paragraph in entry["paragraphs"]:
+            context_text = paragraph["context"]
+                
+            context_id += 1
+            context_list.append(context_text)
+            contextid_list.append(context_id)
+                
+            for qa in paragraph["qas"]:
+                question_text = qa["question"]
+                answer_text = qa["answers"]['text']
+                     
+                # question, context, answer, startposition 등을 설정함
+                if question_text and answer_text and context_text:
+                    question_list.append(question_text)
+                    answer_list.append(answer_text)
+                    qcontextid_list.append(context_id)
+                            
+    return context_list, question_list, answer_list, contextid_list, qcontextid_list
+#==================================================================================================================
+
+#==================================================================================================================
+# KorQuAD_v1.0_dev.json 파일 로딩 하여, 각 리스트들을 출력하는 함수
+# => IN : KorQuAD_v1.0_dev.json 경로
+# => OUT : contexts(문장 리스트), questions(질의리스트), answers(답변리스트), 
+#          contextid(문장 id 리스트 : 10001 부터시작), pcontextid(질의와 연관된 문장 id 리스트: 10001부터 시작)
+#==================================================================================================================
+def read_korquad_v1_json(filepath):
+    
+    context_list = []
+    question_list = []
+    qcontextid_list = []
+    answer_list = []
+    contextid_list = []
+    
+    # KorQuAD_v1.0_train.json 파일을 불러옴
+    json_data = json.load(open(filepath, "r", encoding="utf-8"))["data"]
+
+    # KorQuAD_v1.0 포멧에 맞게 파싱하여, context, question, answer 목록들을 구함.
+    context_id = 10000
+    for entry in json_data:
+            for paragraph in entry["paragraphs"]:
+                context_text = paragraph["context"]
+                context_id += 1
+                context_list.append(context_text)
+                contextid_list.append(context_id)
+                
+                for qa in paragraph["qas"]:
+                    question_text = qa["question"]
+                    
+                    for answer in qa["answers"]:
+                        answer_text = answer["text"]
+                        start_position_character = answer["answer_start"]
+
+                        # question, context, answer, startposition 등을 설정함
+                        if question_text and answer_text and context_text and start_position_character:
+                            question_list.append(question_text)
+                            answer_list.append(answer_text)
+                            qcontextid_list.append(context_id)
+                            
+    return context_list, question_list, answer_list, contextid_list, qcontextid_list
+#==================================================================================================================
+
 
 # 모델 저장 
 def SaveBERTModel(model, tokenizer, OUTPATH, epochs, lr, batch_size):
@@ -83,6 +207,37 @@ class ClassificationFeatures:
     token_type_ids: Optional[List[int]] = None
     label: Optional[int] = None
  
+############################################################
+# GLUE mnli 파일 불러오는 class
+############################################################
+class GlueMNLICorpus:
+    def __init__(self):
+        pass
+
+    def _create_examples(self, data_path):
+        examples = []
+        corpus = open(data_path, "r", encoding="utf-8").readlines()
+        lines = [line.strip().split("\t") for line in corpus]
+        for (i, line) in enumerate(lines):
+            if i == 0:
+                continue
+            text_a, text_b, label = line
+            examples.append(ClassificationExample(text_a=text_a, text_b=text_b, label=label))
+        return examples
+
+    def get_examples(self, data_fpath):
+        print(f"loading data... LOOKING AT {data_fpath}")
+        examples = self._create_examples(data_fpath)
+        return examples
+
+    def get_labels(self):
+        #entailment (0), neutral (1), contradiction (2).
+        return ["entailment", "neutral", "contradiction"]
+
+    @property
+    def num_labels(self):
+        return len(self.get_labels())
+    
 ############################################################
 # KlueNLI.Json 파일 불러오는 class
 ############################################################
@@ -666,6 +821,8 @@ class MLMDataset(Dataset):
         ########################################################################
         # mask 해야할 vocab list가 들어오는 경우, tokenizer 해서 ,idx로 변환해줌.
          ########################################################################
+        self.maskvocablist = None
+        
         if Maskvocab_list is not None:
             maskvocablist = []
             for vocab in Maskvocab_list:
@@ -889,6 +1046,7 @@ class MLMDatasetbyDistilBert(Dataset):
         ########################################################################
         # mask 해야할 vocab list가 들어오는 경우, tokenizer 해서 ,idx로 변환해줌.
         ########################################################################
+        self.maskvocablist = None
         if Maskvocab_list is not None:
             maskvocablist = []
             for vocab in Maskvocab_list:
